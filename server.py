@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, redirect, url_for, g
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField
+from wtforms import StringField, PasswordField, BooleanField, DateField
 from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy  import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +12,9 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
 import time, datetime
+from datetime import date
+from flask_datepicker import datepicker
+
 
 app = Flask(__name__)
 
@@ -20,6 +23,7 @@ file_path = os.path.abspath(os.getcwd())+"/database.db"
 app.config['SECRET_KEY'] = 'Thisissupposedtobesecret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+file_path
 bootstrap = Bootstrap(app)
+datepicker(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -34,6 +38,10 @@ def daysHoursMinutesSecondsFromSeconds(seconds):
 	hours, minutes = divmod(minutes, 60)
 	days, hours = divmod(hours, 24)
 	return (days, hours, minutes, seconds)
+
+# Formato en Mes/Dia/Año
+class DateForm(FlaskForm):
+    dt = DateField('Pick a Date', format="%m/%d/%Y")
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -123,14 +131,13 @@ def accesslist():
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
-
     if request.method == "GET":
         return render_template("create.html",access=None)
 
     if request.method == "POST":
         access=request.form.to_dict()
-        values=[current_user.username,access["urlaccess"],access["limited_date"],access["reason"]]
-        change_db("INSERT INTO access (userid,urlaccess,limited_date,reason) VALUES (?,?,?,?)",values)
+        values=[current_user.username,access["urlaccess"],access["limited_date"],access["reason"], access["from_date"], access["end_date"]]
+        change_db("INSERT INTO access (userid, urlaccess, limited_date, reason, from_date, end_date) VALUES (?,?,?,?,?,?)",values)
         if current_user.admin_privilege == 1:
             return redirect(url_for("accesslist"))
         else:
@@ -250,12 +257,16 @@ def signup():
 
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        default_limited_date = "2010-01-01 01:00:00"
-        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, limited_date = default_limited_date, admin_privilege = 0 )
+        #aqui hay que tener la fecha del instante de creacion , intente con esto
+        #pero la libreria date no quiere cargar correctamente "2010-01-01 01:00:00"
+        default_limited_date = datetime.datetime.now()
+        print (default_limited_date)
+        print (default_limited_date.strftime("%Y-%m-%d %H:%M:%S"))
+        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, limited_date = default_limited_date.strftime("%Y-%m-%d %H:%M:%S"), admin_privilege = 0 )
         db.session.add(new_user)
         db.session.commit()
 
-        return '<h1>New user has been created! ' + form.username.data + ' ' + form.email.data + ' ' + default_limited_date + ' </h1>'
+        return '<h1>New user has been created! ' + form.username.data + ' ' + form.email.data + ' ' + default_limited_date.strftime("%Y-%m-%d") + ' </h1>'
         #return '<h1>' + form.username.data + ' ' + form.email.data + ' ' + form.password.data + '</h1>'
 
     return render_template('signup.html', form=form)
