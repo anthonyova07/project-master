@@ -53,8 +53,8 @@ class User(UserMixin, db.Model):
 
 class SecurityPolicy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), not_null=True)
-    publisher = db.Column(db.String(120), not_null=True)
+    name = db.Column(db.String(120))
+    publisher = db.Column(db.String(120))
     description = db.Column(db.String(120))
     category = db.Column(db.String(40))
     url = db.Column(db.String(100))
