@@ -51,7 +51,7 @@ class User(UserMixin, db.Model):
     limited_date = db.Column(db.String(120))
     admin_privilege = db.Column(db.Integer)
 
-class SecurityPolicy():
+class SecurityPolicy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), not_null=True)
     publisher = db.Column(db.String(120), not_null=True)
