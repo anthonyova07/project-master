@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for, g, flash
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField
+from wtforms import StringField, PasswordField, BooleanField, DateField, SubmitField
 from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy  import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,7 +14,7 @@ import sqlite3
 import time, datetime
 from datetime import date
 from flask_datepicker import datepicker
-
+import sys
 
 app = Flask(__name__)
 
@@ -60,6 +60,7 @@ class SecurityPolicy(db.Model):
     url = db.Column(db.String(100))
     port = db.Column(db.String(6))
     created_on = db.Column(db.String(20))
+    created_by = db.Column(db.String(40))
 
 
 #class User(UserMixin, db.Model):
@@ -85,13 +86,14 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
 
-class SecurityPolicyForm():
-    name = StringField('name', validators=[InputRequired(), Length(max=120)])
-    publisher = StringField('publisher', validators=[InputRequired(), Length(max=120)])
-    description = StringField('description', validators=[InputRequired(), Length(max=120)])
-    category = StringField('category', validators=[InputRequired(), Length(max=40)])
-    url = StringField('url', validators=[InputRequired(), Length(max=100)])
-    port = StringField('port', validators=[InputRequired(), Length(max=6)])
+class SecurityPolicyForm(FlaskForm):
+    name = StringField('Nombre', validators=[InputRequired("Ingrese un Nombre"), Length(max=100)])
+    publisher = StringField('publisher', validators=[InputRequired("Ingrese un Fabricante"), Length(max=100)])
+    description = StringField('description', validators=[InputRequired("Ingrese un Descripcion"), Length(max=120)])
+    category = StringField('category', validators=[InputRequired("Ingrese un Categoria"), Length(max=40)])
+    url = StringField('url', validators=[InputRequired("Ingrese un URL"), Length(max=100)])
+    port = StringField('port', validators=[InputRequired("Ingrese un Puerto"), Length(max=6)])
+    submit = SubmitField('Guardar')
 ##########/
 
 DATABASE = "database.db"
@@ -137,15 +139,23 @@ def adminpanel():
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
+@app.route('/policieslist', methods=['GET', 'POST'])
+@login_required
+def policieslist():
+    policies_list =  query_db("SELECT * FROM security_policy")
+    return render_template("policieslist.html"
+        , current_user = current_user
+        , policies_list = policies_list)
+
 @app.route('/policiesform', methods=['GET', 'POST'])
 @login_required
 def policiesform():
 
     form = SecurityPolicyForm()
 
-    if current_user.admin_privilege == 1 and request.method == "GET":
-        return render_template("policiesform.html", SecurityPolicy=None)
-    elif current_user.admin_privilege == 1 and request.method == "POST":
+    if request.method == "GET":
+        return render_template("policiesform.html", form=form)
+    elif request.method == "POST":    
         new_securityPolicy = SecurityPolicy(name = form.name.data.title()
             , publisher = form.publisher.data.title()
             , description = form.description.data
@@ -156,6 +166,14 @@ def policiesform():
             , created_by = current_user.username)
         db.session.add(new_securityPolicy)
         db.session.commit()
+        return('<p>' 
+                + form.name.data.title() + ' ' 
+                + form.publisher.data.title() + ' ' 
+                + form.description.data + ' ' 
+                + form.category.data.title() + ' '
+                + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' '
+                + current_user.username + ' '
+                + '</p>')
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
