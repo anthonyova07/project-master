@@ -172,8 +172,7 @@ def policiesform():
 
 @app.route('/policyupdate/<int:id>', methods=['GET', 'POST'])
 @login_required
-def policyupdate(id):
-    
+def policyupdate(id):    
     policy = SecurityPolicyForm()
 
     if request.method == "GET":
@@ -182,6 +181,18 @@ def policyupdate(id):
     elif request.method == "POST":
         values = [policy.name.data.title() , policy.publisher.data.title(), policy.description.data, policy.category.data.title(), policy.url.data.lower(), policy.port.data, id]
         change_db("UPDATE security_policy SET name=?, publisher=?, description=?, category=?, url=?, port=? WHERE id=?", values)
+        return redirect(url_for("policieslist"))
+
+@app.route('/policydelete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def policydelete(id):
+    policy = SecurityPolicyForm()
+
+    if request.method == "GET":
+        policy = query_db("SELECT * FROM security_policy WHERE id=?", [id], one=True)
+        return render_template("policydelete.html", policy=policy)
+    elif request.method == "POST":
+        change_db("DELETE FROM security_policy WHERE id = ?",[id])
         return redirect(url_for("policieslist"))
 
 @app.route('/accesslist')
@@ -250,7 +261,6 @@ def userudpate(id):
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete(id):
-
     if request.method == "GET":
         user=query_db("SELECT * FROM user WHERE id=?",[id],one=True)
         return render_template("delete.html",user=user)
