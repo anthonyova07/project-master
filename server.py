@@ -166,16 +166,23 @@ def policiesform():
             , created_by = current_user.username)
         db.session.add(new_securityPolicy)
         db.session.commit()
-        return('<p>' 
-                + form.name.data.title() + ' ' 
-                + form.publisher.data.title() + ' ' 
-                + form.description.data + ' ' 
-                + form.category.data.title() + ' '
-                + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' '
-                + current_user.username + ' '
-                + '</p>')
+        return redirect(url_for("policieslist"))
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
+
+@app.route('/policyupdate/<int:id>', methods=['GET', 'POST'])
+@login_required
+def policyupdate(id):
+    
+    policy = SecurityPolicyForm()
+
+    if request.method == "GET":
+        policy = query_db("SELECT * FROM security_policy WHERE id=?", [id], one=True)
+        return render_template("policyupdate.html", policy=policy)
+    elif request.method == "POST":
+        values = [policy.name.data.title() , policy.publisher.data.title(), policy.description.data, policy.category.data.title(), policy.url.data.lower(), policy.port.data, id]
+        change_db("UPDATE security_policy SET name=?, publisher=?, description=?, category=?, url=?, port=? WHERE id=?", values)
+        return redirect(url_for("policieslist"))
 
 @app.route('/accesslist')
 @login_required

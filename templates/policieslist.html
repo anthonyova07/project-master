@@ -3,13 +3,13 @@
 
 {% block contenido %}
     <a class="btn btn-default" href="/policiesform">Nueva Politica</a>
-    <table>
+    <table class="table">
         <thead>
             <tr>
-                <th>Nombre</th>
-                <th>Fabricante</th>
-                <th>Categoria</th>
-                <th>Acciones</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Fabricante</th>
+                <th scope="col">Categoria</th>
+                <th scope="col">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -19,7 +19,7 @@
                     <td>{{ onePolicy.publisher }}</td>
                     <td>{{ onePolicy.category }}</td>
                     <td>
-                        <a class="btn btn-outline-secondary btn-sm" href="./policiesform/{{onePolicy.id}}">Editar</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="./policyupdate/{{onePolicy.id}}">Editar</a>
                     </td>
                 </tr>
             {% endfor %}
