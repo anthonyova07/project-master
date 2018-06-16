@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, redirect, url_for, g, flash
+from flask import Flask, render_template, request, redirect, url_for, g, flash, Response
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, DateField, SubmitField
@@ -11,7 +11,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import os
 from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
-import time, datetime
+import time, datetime, json
 from datetime import date
 from flask_datepicker import datepicker
 import sys
@@ -94,6 +94,7 @@ class SecurityPolicyForm(FlaskForm):
     url = StringField('url', validators=[InputRequired("Ingrese un URL"), Length(max=100)])
     port = StringField('port', validators=[InputRequired("Ingrese un Puerto"), Length(max=6)])
     submit = SubmitField('Guardar')
+
 ##########/
 
 DATABASE = "database.db"
@@ -138,6 +139,12 @@ def adminpanel():
         return render_template("adminpanel.html",current_user=current_user,user_list=user_list, actualdate = datetime.datetime.now(), datetime = datetime)
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
+
+@app.route('/policyautocomplete', methods=['GET'])
+def policyautocomplete():
+    search = request.args.get('qry')
+    policies_list =  query_db("SELECT name FROM security_policy")
+    return Response(json.dumps(policies_list), mimetype='application/json')
 
 @app.route('/policieslist', methods=['GET', 'POST'])
 @login_required
