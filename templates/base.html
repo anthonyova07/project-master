@@ -42,13 +42,14 @@
                 {% if current_user.admin_privilege == 1 %}
                     <a class="navbar-brand" href="/"><i class="fa fa-users"></i> Panel de Administración de Acceso</a>
                     <a class="btn btn-success" href="/adminpanel">Usuarios</a>
+                    <a class="btn btn-success" href="/policieslist">Politicas de Acceso</a>
                     <a class="btn btn-warning" href="/accesslist">Solicitudes de Acceso</a>
                 {% endif %}
 
                 {% if current_user.admin_privilege == 0 %}
                     <a class="navbar-brand" href="/"> <i class="fa fa-users"></i>  Sistema</a>
                     <a class="btn btn-warning" href="/userpanel">Panel de Usuario</a>
-                    <a class="btn btn-success" href="/policieslist">Politicas de Acceso</a>
+                    
                 {% endif %}
 
                 {% if current_user.is_authenticated == True %}

@@ -140,12 +140,6 @@ def adminpanel():
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
-@app.route('/policyautocomplete', methods=['GET'])
-def policyautocomplete():
-    search = request.args.get('qry')
-    policies_list =  query_db("SELECT name FROM security_policy")
-    return Response(json.dumps(policies_list), mimetype='application/json')
-
 @app.route('/policieslist', methods=['GET', 'POST'])
 @login_required
 def policieslist():
@@ -160,9 +154,9 @@ def policiesform():
 
     form = SecurityPolicyForm()
 
-    if request.method == "GET":
+    if request.method == "GET" and current_user.admin_privilege == 1:
         return render_template("policiesform.html", form=form)
-    elif request.method == "POST":    
+    elif request.method == "POST" and current_user.admin_privilege == 1:
         new_securityPolicy = SecurityPolicy(name = form.name.data.title()
             , publisher = form.publisher.data.title()
             , description = form.description.data
@@ -182,25 +176,29 @@ def policiesform():
 def policyupdate(id):    
     policy = SecurityPolicyForm()
 
-    if request.method == "GET":
+    if request.method == "GET" and current_user.admin_privilege == 1:
         policy = query_db("SELECT * FROM security_policy WHERE id=?", [id], one=True)
         return render_template("policyupdate.html", policy=policy)
-    elif request.method == "POST":
+    elif request.method == "POST" and current_user.admin_privilege == 1:
         values = [policy.name.data.title() , policy.publisher.data.title(), policy.description.data, policy.category.data.title(), policy.url.data.lower(), policy.port.data, id]
         change_db("UPDATE security_policy SET name=?, publisher=?, description=?, category=?, url=?, port=? WHERE id=?", values)
         return redirect(url_for("policieslist"))
+    else:
+        return('<h1>Su actual usuario no es administrador.</h1>')
 
 @app.route('/policydelete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def policydelete(id):
     policy = SecurityPolicyForm()
 
-    if request.method == "GET":
+    if request.method == "GET" and current_user.admin_privilege == 1:
         policy = query_db("SELECT * FROM security_policy WHERE id=?", [id], one=True)
         return render_template("policydelete.html", policy=policy)
-    elif request.method == "POST":
+    elif request.method == "POST" and current_user.admin_privilege == 1:
         change_db("DELETE FROM security_policy WHERE id = ?",[id])
         return redirect(url_for("policieslist"))
+    else:
+        return('<h1>Su actual usuario no es administrador.</h1>')
 
 @app.route('/accesslist')
 @login_required
