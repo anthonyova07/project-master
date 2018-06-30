@@ -200,6 +200,21 @@ def policydelete(id):
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
+@app.route('/newaccessrequest')
+@login_required
+def newaccessrequest():
+    return render_template(
+        'newaccessrequest.html',
+        data = query_db("SELECT * FROM security_policy"),
+        access = None
+    )
+
+@app.route('/commitaccessrequest', methods=["GET", "POST"])
+@login_required
+def commitaccessrequest():
+    select = request.form.get('policy_select')
+    return(str(select))
+
 @app.route('/accesslist')
 @login_required
 def accesslist():
