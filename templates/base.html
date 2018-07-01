@@ -75,23 +75,21 @@
                 fromDate: moment().startOf('hour'),
                 endDate: moment().startOf('hour').add(32, 'hour'),
                 locale: {
-                    format: 'M/DD hh:mm A'
+                    format: 'DD/MM/YY hh:mm A'
                 }
             });
             $('input[name="from_date"]').daterangepicker({
+                singleDatePicker: true,
                 timePicker: true,
-                fromDate: moment().startOf('hour'),
-                endDate: moment().startOf('hour').add(32, 'hour'),
                 locale: {
-                    format: 'M/DD hh:mm A'
+                    format: 'YYYY-MM-DD HH:MM'
                 }
             });
             $('input[name="end_date"]').daterangepicker({
+                singleDatePicker: true,
                 timePicker: true,
-                fromDate: moment().startOf('hour'),
-                endDate: moment().startOf('hour').add(32, 'hour'),
                 locale: {
-                    format: 'M/DD hh:mm A'
+                    format: 'YYYY-MM-DD HH:MM'
                 }
             });
             $("#urlaccess").autocomplete({});

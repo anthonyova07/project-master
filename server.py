@@ -212,8 +212,24 @@ def newaccessrequest():
 @app.route('/commitaccessrequest', methods=["GET", "POST"])
 @login_required
 def commitaccessrequest():
-    select = request.form.get('policy_select')
-    return(str(select))
+    if request.method == "POST":
+        select = request.form.to_dict()
+        fromDate = datetime.datetime.strptime( select["from_date"], '%Y-%m-%d %H:%M').strftime('%Y-%m-%d %H:%M:%S')
+        endDate = datetime.datetime.strptime( select["end_date"], '%Y-%m-%d %H:%M').strftime('%Y-%m-%d %H:%M:%S')
+        securityPolicy = select['policy_select']
+        securityPolicyObj = query_db("SELECT * FROM security_policy WHERE name LIKE ?", [securityPolicy], one=True)
+
+        values = [current_user.username
+            , securityPolicyObj['url']
+            , endDate
+            , select['reason']
+            , fromDate
+            , endDate
+        ]
+
+        change_db("INSERT INTO access (userid, urlaccess, limited_date, reason, from_date, end_date) VALUES (?,?,?,?,?,?)",values)
+        
+        return(str(values))
 
 @app.route('/accesslist')
 @login_required
@@ -229,7 +245,7 @@ def accesslist():
 @login_required
 def create():
     if request.method == "GET":
-        return render_template("create.html",access=None)
+        return render_template("create.html", data = query_db("SELECT * FROM security_policy"), access=None)
 
     if request.method == "POST":
         access=request.form.to_dict()
