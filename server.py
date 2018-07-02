@@ -229,7 +229,10 @@ def commitaccessrequest():
 
         change_db("INSERT INTO access (userid, urlaccess, limited_date, reason, from_date, end_date) VALUES (?,?,?,?,?,?)",values)
         
-        return(str(values))
+        if current_user.admin_privilege == 1:
+            return redirect(url_for("accesslist"))
+        else:
+            return redirect(url_for("requestdone"))
 
 @app.route('/accesslist')
 @login_required
@@ -240,6 +243,36 @@ def accesslist():
         return render_template("accesslist.html",current_user=current_user,access_list=access_list, actualdate = datetime.datetime.now(), datetime = datetime, len=len)
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
+
+@app.route('/todayaccesslist', methods = ['GET'])
+def todayaccesslist():
+    current_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    access_list = query_db("SELECT * FROM access WHERE approve == 1 AND from_date >= ?", [current_date])
+
+    if len(access_list) > 0:
+        responseData = []
+
+        for objAccess in access_list:
+            values = {'username' : objAccess['userid']
+                , 'url_port' : objAccess['urlaccess']
+                , 'limited_date' : objAccess['limited_date']
+                , 'reason' : objAccess['reason']
+                , 'from_date' : objAccess['from_date']
+                , 'end_date' : objAccess['end_date']
+            }
+            responseData.append(values)
+        jsReponse = json.dumps(responseData)
+
+        resp = Response(jsReponse, status = 200, mimetype = 'application/json')
+
+        return (resp)
+    else:
+        jsReponse = json.dumps('None')
+        resp = Response(jsReponse, status = 404, mimetype = 'application/json')
+
+        return (resp)
+
+    
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
