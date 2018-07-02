@@ -270,9 +270,7 @@ def todayaccesslist():
         jsReponse = json.dumps('None')
         resp = Response(jsReponse, status = 404, mimetype = 'application/json')
 
-        return (resp)
-
-    
+        return (resp)    
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
