@@ -9,7 +9,7 @@ from flask_sqlalchemy  import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import os
-from flask import Flask, render_template, request, redirect, url_for, g
+import requests
 import sqlite3
 import time, datetime, json
 from datetime import date
@@ -62,6 +62,10 @@ class SecurityPolicy(db.Model):
     created_on = db.Column(db.String(20))
     created_by = db.Column(db.String(40))
 
+class ControllerConfig(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    server_ip = db.Column(db.String(80))
 
 #class User(UserMixin, db.Model):
 #    id = db.Column(db.Integer, primary_key=True)
@@ -93,6 +97,11 @@ class SecurityPolicyForm(FlaskForm):
     category = StringField('category', validators=[InputRequired("Ingrese un Categoria"), Length(max=40)])
     url = StringField('url', validators=[InputRequired("Ingrese un URL"), Length(max=100)])
     port = StringField('port', validators=[InputRequired("Ingrese un Puerto"), Length(max=6)])
+    submit = SubmitField('Guardar')
+
+class ControllerConfigForm(FlaskForm):
+    name = StringField('Nombre Controlador', validators=[InputRequired("Ingrese un Nombre"), Length(max=80)])
+    server_ip = StringField('Direccion Controller', validators=[InputRequired("Ingrese una Direccion"), Length(max=50)])
     submit = SubmitField('Guardar')
 
 ##########/
@@ -197,6 +206,46 @@ def policydelete(id):
     elif request.method == "POST" and current_user.admin_privilege == 1:
         change_db("DELETE FROM security_policy WHERE id = ?",[id])
         return redirect(url_for("policieslist"))
+    else:
+        return('<h1>Su actual usuario no es administrador.</h1>')
+
+
+@app.route('/newcontroller', methods=['GET', 'POST'])
+@login_required
+def newcontroller():
+    form = ControllerConfigForm()
+
+    if request.method == "GET" and current_user.admin_privilege == 1:
+        return render_template("newcontroller.html", form=form)
+    elif request.method == "POST" and current_user.admin_privilege == 1:
+        new_controllerConfig = ControllerConfig(name = form.name.data.title()
+            , server_ip = form.server_ip.data.title())
+        db.session.add(new_controllerConfig)
+        db.session.commit()
+        return redirect(url_for("adminpanel"))
+    else:
+        return('<h1>Su actual usuario no es administrador.</h1>')
+
+@app.route('/controllerlist', methods=['GET', 'POST'])
+@login_required
+def controllerlist():
+    controller_list =  query_db("SELECT * FROM controller_config")
+    return render_template("controllerlist.html"
+        , current_user = current_user
+        , controller_list = controller_list)
+
+@app.route('/controllerupdate/<int:id>', methods=['GET', 'POST'])
+@login_required
+def controllerupdate(id):    
+    controller = ControllerConfigForm()
+
+    if request.method == "GET" and current_user.admin_privilege == 1:
+        controller = query_db("SELECT * FROM controller_config WHERE id=?", [id], one=True)
+        return render_template("updatecontroller.html", controller=controller)
+    elif request.method == "POST" and current_user.admin_privilege == 1:
+        values = [controller.name.data.title() , controller.server_ip.data.title(), id]
+        change_db("UPDATE controller_config SET name=?, server_ip=? WHERE id=?", values)
+        return redirect(url_for("controllerlist"))
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
@@ -429,7 +478,7 @@ def approverequest(id):
     sdnController = 'http://'+ ctrlServerName +':6633/serverconfig'
 
     # Respuesta de Hacer POST
-    response = request.post(sdnController, data=jsReponse, headers=headers)
+    response = requests.post(sdnController, data=jsReponse, headers=headers)
 
     # Imprimir Respuesta
     print (response)

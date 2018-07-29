@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block titulo %}Actualizacion Configuracion de Controlador{% endblock %}
+
+{% block contenido %}
+<form action="" method="POST">
+    <!--Nombre-->
+    <div class="form-group row">
+        <label for="name" class="col-sm-2 col-form-label">Nombre</label>
+        <div class="col-sm-10">
+            <input id="name" name="name" type="text" placeholder="Nombre" class="form-control" value={{controller.name}}>
+        </div>
+    </div>
+    <!--Direccion IP-->
+    <div class="form-group row">
+        <label for="server_ip" class="col-sm-2 col-form-label">Direccion IP</label>
+        <div class="col-sm-10">
+            <input id="server_ip" name="server_ip" type="text" placeholder="Direccion IP Controlador" class="form-control" value={{controller.server_ip}}>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-secondary" value="Submit">Guardar</button>
+    <a class="btn btn-secondary" value="Back" href="/controllerlist">Regresar</a>
+</form>
+
+{% endblock %}

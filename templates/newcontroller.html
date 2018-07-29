@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block titulo %}Nueva Configuracion Controlador{% endblock %}
+
+{% block contenido %}
+<form action="" method="POST">
+    <!--Nombre-->
+    <div class="form-group row">
+        <label for="name" class="col-sm-2 col-form-label">Nombre</label>
+        <div class="col-sm-10">
+            <input id="name" name="name" type="text" placeholder="Nombre Aplicacion/Sitio Web/Recurso" class="form-control" value={{name}}>
+        </div>
+    </div>
+    <!--Fabricante-->
+    <div class="form-group row">
+        <label for="publisher" class="col-sm-2 col-form-label">Direccion IP</label>
+        <div class="col-sm-10">
+            <input id="server_ip" name="server_ip" type="text" placeholder="Direccion IP" class="form-control" value={{server_ip}}>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-secondary" value="Submit">Guardar</button>
+    <a class="btn btn-secondary" value="Back" href="/controllerlist">Regresar</a>
+</form>
+
+{% endblock %}
