@@ -19,6 +19,20 @@
             <input id="server_ip" name="server_ip" type="text" placeholder="Direccion IP Controlador" class="form-control" value={{controller.server_ip}}>
         </div>
     </div>
+    <!--Puerto Salida-->
+    <div class="form-group row">
+        <label for="output_port" class="col-sm-2 col-form-label">Puerto Salida</label>
+        <div class="col-sm-10">
+            <input id="output_port" name="output_port" type="text" placeholder="Direccion IP Controlador" class="form-control" value={{controller.output_port}}>
+        </div>
+    </div>
+    <!--Puerto Por Defecto-->
+    <div class="form-group row">
+        <label for="default_port" class="col-sm-2 col-form-label">Puerto Por Defecto</label>
+        <div class="col-sm-10">
+            <input id="default_port" name="default_port" type="text" placeholder="Direccion IP Controlador" class="form-control" value={{controller.default_port}}>
+        </div>
+    </div>
     <button type="submit" class="btn btn-secondary" value="Submit">Guardar</button>
     <a class="btn btn-secondary" value="Back" href="/controllerlist">Regresar</a>
 </form>

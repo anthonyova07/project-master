@@ -8,6 +8,8 @@
             <tr>
                 <th scope="col">Nombre</th>
                 <th scope="col">Direccion IP</th>
+                <th scope="col">Puerto Salida</th>
+                <th scope="col">Puerto Por Defecto</th>
                 <th></th>
             </tr>
         </thead>
@@ -16,6 +18,8 @@
                 <tr>
                     <td>{{ oneController.name }}</td>
                     <td>{{ oneController.server_ip }}</td>
+                    <td>{{ oneController.output_port }}</td>
+                    <td>{{ oneController.default_port }}</td>
                     <td>
                         <a class="btn btn-outline-secondary btn-sm" href="./controllerupdate/{{oneController.id}}">Editar</a>
                         <a class="btn btn-outline-secondary btn-sm" href="./controllerdisable/{{oneController.id}}">Eliminar</a>

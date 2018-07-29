@@ -66,6 +66,8 @@ class ControllerConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     server_ip = db.Column(db.String(80))
+    output_port = db.Column(db.String(10))
+    default_port = db.Column(db.String(10))
 
 #class User(UserMixin, db.Model):
 #    id = db.Column(db.Integer, primary_key=True)
@@ -102,6 +104,8 @@ class SecurityPolicyForm(FlaskForm):
 class ControllerConfigForm(FlaskForm):
     name = StringField('Nombre Controlador', validators=[InputRequired("Ingrese un Nombre"), Length(max=80)])
     server_ip = StringField('Direccion Controller', validators=[InputRequired("Ingrese una Direccion"), Length(max=50)])
+    output_port = StringField('Puerto Salida', validators=[InputRequired("Ingrese un Puerto Salida"), Length(max=10)])
+    default_port = StringField('Puerto Por Defecto', validators=[InputRequired("Ingrese un Puerto Por Defecto"), Length(max=10)])
     submit = SubmitField('Guardar')
 
 ##########/
@@ -219,7 +223,9 @@ def newcontroller():
         return render_template("newcontroller.html", form=form)
     elif request.method == "POST" and current_user.admin_privilege == 1:
         new_controllerConfig = ControllerConfig(name = form.name.data.title()
-            , server_ip = form.server_ip.data.title())
+            , server_ip = form.server_ip.data.title()
+            , output_port = form.output_port.data.title()
+            , default_port = form.default_port.data.title())
         db.session.add(new_controllerConfig)
         db.session.commit()
         return redirect(url_for("adminpanel"))
@@ -243,8 +249,8 @@ def controllerupdate(id):
         controller = query_db("SELECT * FROM controller_config WHERE id=?", [id], one=True)
         return render_template("updatecontroller.html", controller=controller)
     elif request.method == "POST" and current_user.admin_privilege == 1:
-        values = [controller.name.data.title() , controller.server_ip.data.title(), id]
-        change_db("UPDATE controller_config SET name=?, server_ip=? WHERE id=?", values)
+        values = [controller.name.data.title() , controller.server_ip.data.title(), controller.output_port.data.title(), controller.default_port.data.title(), id]
+        change_db("UPDATE controller_config SET name=?, server_ip=?, output_port=?, default_port=? WHERE id=?", values)
         return redirect(url_for("controllerlist"))
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
@@ -456,7 +462,7 @@ def approverequest(id):
     
     ########TODO Configuracion de Servidor Controller
     ########Incluir un CRU (Create, Read and Update)
-    ctrlServerName = 'maincontroller'
+    ctrlServerName = query_db("SELECT * FROM controller_config ORDER BY id desc LIMIT 1")
 
     # Variable Auxiliar del DATA del Objeto JSON
     responseData = []
