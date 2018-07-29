@@ -247,8 +247,15 @@ def accesslist():
 
 @app.route('/todayaccesslist', methods = ['GET'])
 def todayaccesslist():
-    current_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    access_list = query_db("SELECT * FROM access WHERE approve == 1 AND from_date >= ?", [current_date])
+    today = datetime.datetime.now()
+    
+    tomorrow = datetime.datetime(today.year, today.month, today.day + 1)
+
+    current_date = today.strftime('%Y-%m-%d %H:%M:%S')
+
+    tomorrow_date = tomorrow.strftime('%Y-%m-%d %H:%M:%S')
+
+    access_list = query_db("SELECT * FROM access WHERE approve == 1 AND from_date >= ? AND from_date <= ?", [current_date], [tomorrow_date])
 
     if len(access_list) > 0:
         responseData = []
@@ -272,6 +279,34 @@ def todayaccesslist():
         resp = Response(jsReponse, status = 404, mimetype = 'application/json')
 
         return (resp)    
+
+@app.route('/allaccesslist', methods = ['GET'])
+def allaccesslist():    
+    access_list = query_db("SELECT * FROM access WHERE approve == 1")
+
+    if len(access_list) > 0:
+        responseData = []
+
+        for objAccess in access_list:
+            values = {'username' : objAccess['userid']
+                , 'url_port' : objAccess['urlaccess']
+                , 'limited_date' : objAccess['limited_date']
+                , 'reason' : objAccess['reason']
+                , 'from_date' : objAccess['from_date']
+                , 'end_date' : objAccess['end_date']
+            }
+            responseData.append(values)
+        
+        jsReponse = json.dumps(responseData)
+
+        resp = Response(jsReponse, status = 200, mimetype = 'application/json')
+
+        return (resp)
+    else:
+        jsReponse = json.dumps('None')
+        resp = Response(jsReponse, status = 404, mimetype = 'application/json')
+
+        return (resp)  
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -361,8 +396,46 @@ def deactivate(id):
 
 @app.route('/approverequest/<int:id>')
 def approverequest(id):
-        change_db("UPDATE access SET approve=1 WHERE ID=?",[id])
-        return redirect(url_for("accesslist"))
+    # UPDATE para Aprobacion de Solicitud
+    change_db("UPDATE access SET approve=1 WHERE ID=?",[id])
+
+    # Proceso de Notificacion de Controlador
+    # Definicion de Headers
+    headers = {'Content-type': 'application/json'}
+    # Solicitud a Enviar al Controlador
+    access_list = query_db("SELECT * FROM access WHERE WHERE ID=?", [id])
+    
+    ########TODO Configuracion de Servidor Controller
+    ########Incluir un CRU (Create, Read and Update)
+    ctrlServerName = 'maincontroller'
+
+    # Variable Auxiliar del DATA del Objeto JSON
+    responseData = []
+    
+    for objAccess in access_list:
+        values = {'username' : objAccess['userid']
+            , 'url_port' : objAccess['urlaccess']
+            , 'limited_date' : objAccess['limited_date']
+            , 'output_port' : '8080' #ctrlServerName['output_port']
+            , 'from_date' : objAccess['from_date']
+            , 'end_date' : objAccess['end_date']
+        }
+        responseData.append(values)
+    
+    # Formato JSON
+    jsReponse = json.dumps(responseData)
+    
+    # URL de Notificacion al Controlador
+    sdnController = 'http://'+ ctrlServerName +':6633/serverconfig'
+
+    # Respuesta de Hacer POST
+    response = request.post(sdnController, data=jsReponse, headers=headers)
+
+    # Imprimir Respuesta
+    print (response)
+
+    # De Regreso a DASHBOARD
+    return redirect(url_for("accesslist"))
 
 @app.route('/rejectrequest/<int:id>')
 def rejectrequest(id):
