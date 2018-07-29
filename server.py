@@ -232,7 +232,8 @@ def commitaccessrequest():
         if current_user.admin_privilege == 1:
             return redirect(url_for("accesslist"))
         else:
-            return redirect(url_for("requestdone"))
+            #return redirect(url_for("requestdone"))
+            return (fromDate)
 
 @app.route('/accesslist')
 @login_required
