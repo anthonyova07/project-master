@@ -213,7 +213,6 @@ def policydelete(id):
     else:
         return('<h1>Su actual usuario no es administrador.</h1>')
 
-
 @app.route('/newcontroller', methods=['GET', 'POST'])
 @login_required
 def newcontroller():
@@ -310,7 +309,7 @@ def todayaccesslist():
 
     tomorrow_date = tomorrow.strftime('%Y-%m-%d %H:%M:%S')
 
-    access_list = query_db("SELECT * FROM access WHERE approve == 1 AND from_date >= ? AND from_date <= ?", [current_date], [tomorrow_date])
+    access_list = query_db("SELECT * FROM access WHERE approve == 1 AND (from_date >= ? AND from_date <= ?)", [current_date, tomorrow_date])
 
     if len(access_list) > 0:
         responseData = []
@@ -333,7 +332,8 @@ def todayaccesslist():
         jsReponse = json.dumps('None')
         resp = Response(jsReponse, status = 404, mimetype = 'application/json')
 
-        return (resp)    
+        return (resp)   
+    #return (tomorrow_date) 
 
 @app.route('/allaccesslist', methods = ['GET'])
 def allaccesslist():    
@@ -457,12 +457,13 @@ def approverequest(id):
     # Proceso de Notificacion de Controlador
     # Definicion de Headers
     headers = {'Content-type': 'application/json'}
+    
     # Solicitud a Enviar al Controlador
     access_list = query_db("SELECT * FROM access WHERE WHERE ID=?", [id])
     
     ########TODO Configuracion de Servidor Controller
     ########Incluir un CRU (Create, Read and Update)
-    ctrlServerName = query_db("SELECT * FROM controller_config ORDER BY id desc LIMIT 1")
+    ctrlServerName = query_db("SELECT * FROM controller_config ORDER BY id DESC LIMIT 1")
 
     # Variable Auxiliar del DATA del Objeto JSON
     responseData = []
@@ -471,7 +472,7 @@ def approverequest(id):
         values = {'username' : objAccess['userid']
             , 'url_port' : objAccess['urlaccess']
             , 'limited_date' : objAccess['limited_date']
-            , 'output_port' : '8080' #ctrlServerName['output_port']
+            , 'output_port' : ctrlServerName['output_port']
             , 'from_date' : objAccess['from_date']
             , 'end_date' : objAccess['end_date']
         }
@@ -481,7 +482,7 @@ def approverequest(id):
     jsReponse = json.dumps(responseData)
     
     # URL de Notificacion al Controlador
-    sdnController = 'http://'+ ctrlServerName +':6633/serverconfig'
+    sdnController = 'http://'+ ctrlServerName['server_ip'] +':6633/serverconfig'
 
     # Respuesta de Hacer POST
     response = requests.post(sdnController, data=jsReponse, headers=headers)
